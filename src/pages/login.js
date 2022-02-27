@@ -3,7 +3,7 @@ import InputField from '../components/inputField.js';
 import Wrapper from "../components/wrapper";
 import Button from "../components/buttons";
 import Block from "../components/block";
-import Header from "../components/Header";
+import Header from "../components/header";
 
 function Login() {
   return (
