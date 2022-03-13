@@ -1,11 +1,20 @@
-import Login from './pages/login.js';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+} from "react-router-dom";
+import Login from './pages/login';
+import Registration from "./pages/registration";
+import Header from "./components/header";
 
 function App() {
   return (
-    <div className="App">
-      <p>Task-tracker</p>
-      <Login />
-    </div>
+    <Router>
+      <Routes>
+        <Route path={"login"} element={<Login />} />
+        <Route path={"registration"} element={<Registration />} />
+      </Routes>
+    </Router>
   );
 }
 export default App;
