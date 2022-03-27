@@ -1,91 +1,111 @@
-import React, {useState} from 'react';
-import StyledInput from '../components/inputField';
-import Wrapper from "../components/wrapper";
-import Button from "../components/buttons";
-import Block from "../components/block";
-import Header from "../components/header";
-import Icon from "../components/eyeIcon"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye } from "@fortawesome/free-solid-svg-icons";
-import validateEmail from "../validators/EmailValidator";
-import validatePassword from "../validators/PasswordValidator";
-import buttons from "../components/buttons";
+import React, {useState, useEffect} from 'react'
+import StyledInput from '../components/inputField'
+import Wrapper from '../components/wrapper'
+import Button from '../components/buttons'
+import Block from '../components/block'
+import Header from '../components/header'
+import Icon from '../components/eyeIcon'
+import {Error} from '../components/error'
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
+import {faEye} from '@fortawesome/free-solid-svg-icons'
+import {LoginFormValidator} from '../validators/FormValidator'
+import {useApolloClient} from '@apollo/client'
+import useAuthUser from '../globals/AuthUser'
+import {useNavigate} from 'react-router-dom'
+import signIn from '../api/mutations/signIn'
 
 function Login() {
-  const eye = <FontAwesomeIcon icon={faEye} />;
-  const [passwordShown, setPasswordShown] = useState(false);
-  const togglePasswordVisibility = (e) => {
-    setPasswordShown(!passwordShown);
-    const tag = document.getElementsByName("password");
-    tag.setAttribute("green", "green");
-  }
+  const eye = <FontAwesomeIcon icon={faEye} />
+  const [formValues, setFormValues] = useState({
+    login: '',
+    password: ''
+  })
 
-  function onBlurHandlerLogin(e) {
-    e.target.value = e.target.value.trim();
-    let parent = e.target.parentNode;
-    let submitButton = document.querySelector("button");
-    if (!validateEmail(e.target.value)) {
-      if (parent.lastChild === e.target) {
-        let space = document.createElement('br');
-        let message = document.createElement('span');
-        message.style = "color: palevioletred";
-        message.textContent = 'Login field is wrong';
-        parent.appendChild(space);
-        parent.appendChild(message);
-        submitButton.disabled = true;
-      }
-    } else if (!(parent.lastChild === e.target)){
-      parent.lastChild.remove();
-      parent.lastChild.remove();
-      submitButton.disabled = false;
+  const [passwordShown, setPasswordShown] = useState(false)
+  const [isSubmit, setIsSubmit] = useState(true)
+  const [formErrors, setFormErrors] = useState({})
+  const {dispatch, state: AuthUser} = useAuthUser()
+  const client = useApolloClient()
+
+  const handleSignIn = async (event) => {
+    console.log(AuthUser.isLoading)
+    event.preventDefault()
+    if (!isSubmit) {
+      dispatch({type: 'loading'})
+      const result = await signIn(client, formValues)
+      dispatch({type: 'loaded', payload: result})
     }
   }
 
-  function onBlurHandlerPassword(e) {
-    e.target.value = e.target.value.trim();
-    let parent = e.target.parentNode;
-    let submitButton = document.querySelector("button");
-    if (!validatePassword(e.target.value)) {
-      if (parent.lastChild.nodeName !== "SPAN") {
-        let space = document.createElement('br');
-        let message = document.createElement('span');
-        message.style = "color: palevioletred";
-        message.textContent = 'Password field is wrong';
-        parent.appendChild(space);
-        parent.appendChild(message);
-        submitButton.disabled = true;
-      }
-    } else if (parent.lastChild.nodeName === "SPAN") {
-      parent.lastChild.remove();
-      parent.lastChild.remove();
-      submitButton.disabled = false;
+  const togglePasswordVisibility = () => {
+    setPasswordShown(!passwordShown)
+  }
+
+  function handleEvent(e) {
+    const {value, id} = e.target
+    if (e.type === 'change') {
+      setFormValues({...formValues, [id]: value.trim()})
+    } else if (e.type === 'blur') {
+      setFormValues({...formValues, [id]: value})
     }
   }
+  const navigate = useNavigate()
+  useEffect(() => {
+    if (AuthUser.user) {
+      navigate('/', {replace: true})
+    }
+  }, [AuthUser.user])
+
+  useEffect(() => {
+    setFormErrors(LoginFormValidator(formValues))
+    if (formErrors.login === undefined && formErrors.password === undefined) {
+      setIsSubmit(false)
+    } else {
+      setIsSubmit(true)
+    }
+  }, [formValues])
 
   return (
     <Wrapper>
       <Header fontSize="4em">Task-tracker</Header>
-      <Header fontSize="3em">
-        Login Page
-      </Header>
+      <Header fontSize="3em">Login Page</Header>
       <form>
         <Block>
-          <StyledInput Margin="10px" placeholder="Your login" type="text" label="Login:"
-                       onChange={e => console.log("Content in login field has changed")}
-                       onBlur={onBlurHandlerLogin} required>
-          </StyledInput>
+          <StyledInput
+            id="login"
+            Margin="10px"
+            placeholder="Your login"
+            type="text"
+            label="Login:"
+            onChange={(e) => handleEvent(e)}
+            onBlur={(e) => handleEvent(e)}
+            required
+          />
+          <Error>{formErrors.login}</Error>
         </Block>
         <Block>
-          <StyledInput Margin="10px 0px 10px 15px" placeholder="Your password" type={passwordShown ? "text" : "password"}
-                       label="Password:" onChange={e => console.log("Content in password field has changed")}
-                       onBlur={onBlurHandlerPassword}>
-          </StyledInput>
+          <StyledInput
+            Margin="10px 0px 10px 15px"
+            id="password"
+            placeholder="Your password"
+            type={passwordShown ? 'text' : 'password'}
+            label="Password:"
+            onChange={(e) => handleEvent(e)}
+            onBlur={(e) => handleEvent(e)}
+          />
           <Icon onClick={togglePasswordVisibility}>{eye}</Icon>
+          <Error>{formErrors.password}</Error>
         </Block>
-        <Button>Sign In</Button>
+        <Button
+          margin="0.3em"
+          disabled={isSubmit || AuthUser.isLoading}
+          onClick={handleSignIn}
+        >
+          Sign In
+        </Button>
       </form>
     </Wrapper>
-  );
+  )
 }
 
-export default Login;
+export default Login
