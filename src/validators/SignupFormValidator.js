@@ -4,7 +4,7 @@ import {validatePassword} from './PasswordValidator'
 
 export const SignupFormValidator = (values) => {
   const errors = {}
-  errors.mail = validateEmail(values.mail)
+  errors.email = validateEmail(values.email)
   errors.firstName = validateText(values.firstName)
   errors.lastName = validateText(values.lastName)
   errors.password = validatePassword(values.password)

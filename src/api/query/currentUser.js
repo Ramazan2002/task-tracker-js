@@ -11,10 +11,3 @@ export const USER_ME_QUERY = gql`
     }
   }
 `
-
-export default async function currentUserQuery(client) {
-  const {
-    data: {me}
-  } = await client.query({query: USER_ME_QUERY})
-  return me
-}

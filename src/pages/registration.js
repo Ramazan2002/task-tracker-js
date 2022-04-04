@@ -9,10 +9,12 @@ import {SignupFormValidator} from '../validators/SignupFormValidator'
 import {Error} from '../components/error'
 import {useNavigate} from 'react-router-dom'
 import useAuthUser from '../globals/AuthUser'
+import {SIGN_UP_MUTATION} from '../api/mutations/signUp'
+import {useMutation} from '@apollo/client'
 
 function Registration() {
   const [formValues, setFormValues] = useState({
-    mail: '',
+    email: '',
     firstName: '',
     lastName: '',
     password: ''
@@ -20,14 +22,23 @@ function Registration() {
 
   const [isSubmit, setIsSubmit] = useState(true)
   const [formErrors, setFormErrors] = useState({})
-  const {state: AuthUser} = useAuthUser()
+  const {
+    state: {user, isLoading},
+    dispatch
+  } = useAuthUser()
+  const [signUpMutation] = useMutation(SIGN_UP_MUTATION, {
+    onCompleted: (data) => {
+      dispatch({type: 'loaded', payload: data.signup})
+    }
+  })
+
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (AuthUser.user) {
+    if (isLoading == false && user) {
       navigate('/', {replace: true})
     }
-  }, [AuthUser.user])
+  }, [user, isLoading, navigate])
 
   function handleEvent(e) {
     const {value, id} = e.target
@@ -41,7 +52,7 @@ function Registration() {
   useEffect(() => {
     setFormErrors(SignupFormValidator(formValues))
     if (
-      formErrors.mail === undefined &&
+      formErrors.email === undefined &&
       formErrors.firstName === undefined &&
       formErrors.lastName === undefined &&
       formErrors.password === undefined
@@ -52,15 +63,23 @@ function Registration() {
     }
   }, [formValues])
 
+  async function handleSubmit(e) {
+    e.preventDefault()
+    if (!isSubmit) {
+      dispatch({type: 'loading'})
+      await signUpMutation({variables: {...formValues}})
+    }
+  }
+
   return (
     <Wrapper>
       <Header fontSize="4em">Task-tracker</Header>
       <Header fontSize="3em">Registration Page</Header>
-      <form>
+      <form onSubmit={handleSubmit}>
         <Block>
           <StyledInput
             Margin="5px"
-            id="mail"
+            id="email"
             placeholder="Your email"
             type="text"
             label="Email:"
@@ -68,7 +87,7 @@ function Registration() {
             onBlur={(e) => handleEvent(e)}
             required
           ></StyledInput>
-          <Error>{formErrors.mail}</Error>
+          <Error>{formErrors.email}</Error>
         </Block>
         <Block>
           <StyledInput

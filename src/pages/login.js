@@ -29,10 +29,12 @@ function Login() {
 
   const handleSignIn = async (event) => {
     console.log(AuthUser.isLoading)
+    console.log(isSubmit)
     event.preventDefault()
     if (!isSubmit) {
       dispatch({type: 'loading'})
       const result = await signIn(client, formValues)
+      if (result === false) setIsSubmit(true)
       dispatch({type: 'loaded', payload: result})
     }
   }
@@ -69,7 +71,7 @@ function Login() {
     <Wrapper>
       <Header fontSize="4em">Task-tracker</Header>
       <Header fontSize="3em">Login Page</Header>
-      <form>
+      <form onSubmit={handleSignIn}>
         <Block>
           <StyledInput
             id="login"
@@ -96,11 +98,7 @@ function Login() {
           <Icon onClick={togglePasswordVisibility}>{eye}</Icon>
           <Error>{formErrors.password}</Error>
         </Block>
-        <Button
-          margin="0.3em"
-          disabled={isSubmit || AuthUser.isLoading}
-          onClick={handleSignIn}
-        >
+        <Button margin="0.3em" disabled={isSubmit} type="submit">
           Sign In
         </Button>
       </form>

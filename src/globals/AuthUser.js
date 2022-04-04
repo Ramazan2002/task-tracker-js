@@ -5,12 +5,12 @@ import React, {
   useMemo,
   useReducer
 } from 'react'
-import {useApolloClient} from '@apollo/client'
+import {useQuery} from '@apollo/client'
 
 import {ACCESS_TOKEN, REFRESH_TOKEN} from '../constants/authKeys'
-import currentUserQuery from '../api/query/currentUser'
+import {USER_ME_QUERY} from '../api/query/currentUser'
 
-const INITIAL_STATE = {user: null, isLoading: null}
+const INITIAL_STATE = {user: null, isLoading: false}
 
 const UserContext = createContext()
 
@@ -18,7 +18,7 @@ function reducer(state, action) {
   switch (action.type) {
     case 'loading':
       return {
-        ...state,
+        user: state.user,
         isLoading: true
       }
     case 'loaded':
@@ -39,16 +39,16 @@ function reducer(state, action) {
 
 export function AuthUser({children}) {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE)
-
+  const {data: me} = useQuery(USER_ME_QUERY)
   const value = useMemo(() => ({state, dispatch}), [state])
 
-  const client = useApolloClient()
-  useEffect(async () => {
+  useEffect(() => {
     const accessToken = localStorage.getItem(ACCESS_TOKEN)
     const refreshToken = localStorage.getItem(REFRESH_TOKEN)
+    console.log('access token', accessToken)
+    console.log('refresh token', refreshToken)
     if (!!accessToken && !!refreshToken) {
       dispatch({type: 'loading'})
-      const me = await currentUserQuery(client)
       dispatch({
         type: 'loaded',
         payload: {
@@ -58,7 +58,7 @@ export function AuthUser({children}) {
         }
       })
     }
-  }, [])
+  }, [me])
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>
 }
