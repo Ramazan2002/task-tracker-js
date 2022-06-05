@@ -1,15 +1,15 @@
 import React, {useEffect, useState} from 'react'
-import StyledInput from '../components/inputField'
-import FileUploader from '../components/uploadFile'
-import Wrapper from '../components/wrapper'
-import Button from '../components/buttons'
-import Block from '../components/block'
-import Header from '../components/header'
+import StyledInput from '../components/InputField'
+import FileUploader from '../components/UploadFile'
+import Wrapper from '../components/Wrapper'
+import Button from '../components/Buttons'
+import Block from '../components/Block'
+import Header from '../components/Header'
 import {SignupFormValidator} from '../validators/SignupFormValidator'
-import {Error} from '../components/error'
+import {Error} from '../components/Error'
 import {useNavigate} from 'react-router-dom'
 import useAuthUser from '../globals/AuthUser'
-import {SIGN_UP_MUTATION} from '../api/mutations/signUp'
+import {SIGN_UP_MUTATION} from '../api/mutations/authentication/signUp'
 import {useMutation} from '@apollo/client'
 
 function Registration() {
@@ -35,7 +35,7 @@ function Registration() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (isLoading == false && user) {
+    if (isLoading === false && user) {
       navigate('/', {replace: true})
     }
   }, [user, isLoading, navigate])

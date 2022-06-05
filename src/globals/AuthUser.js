@@ -8,7 +8,7 @@ import React, {
 import {useQuery} from '@apollo/client'
 
 import {ACCESS_TOKEN, REFRESH_TOKEN} from '../constants/authKeys'
-import {USER_ME_QUERY} from '../api/query/currentUser'
+import {CURRENT_USER} from '../api/query/currentUser'
 
 const INITIAL_STATE = {user: null, isLoading: false}
 
@@ -39,7 +39,7 @@ function reducer(state, action) {
 
 export function AuthUser({children}) {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE)
-  const {data: me} = useQuery(USER_ME_QUERY)
+  const {data: me} = useQuery(CURRENT_USER)
   const value = useMemo(() => ({state, dispatch}), [state])
 
   useEffect(() => {
