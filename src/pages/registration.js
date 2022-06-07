@@ -7,10 +7,8 @@ import Block from '../components/Block'
 import Header from '../components/Header'
 import {SignupFormValidator} from '../validators/SignupFormValidator'
 import {Error} from '../components/Error'
-import {useNavigate} from 'react-router-dom'
-import useAuthUser from '../globals/AuthUser'
-import {SIGN_UP_MUTATION} from '../api/mutations/authentication/signUp'
-import {useMutation} from '@apollo/client'
+import AuthorizeComponent from '../components/AuthorizeComponent'
+import useSignUp from '../hooks/mutations/auth/useSignUp'
 
 function Registration() {
   const [formValues, setFormValues] = useState({
@@ -19,26 +17,9 @@ function Registration() {
     lastName: '',
     password: ''
   })
-
+  const {signUp} = useSignUp()
   const [isSubmit, setIsSubmit] = useState(true)
   const [formErrors, setFormErrors] = useState({})
-  const {
-    state: {user, isLoading},
-    dispatch
-  } = useAuthUser()
-  const [signUpMutation] = useMutation(SIGN_UP_MUTATION, {
-    onCompleted: (data) => {
-      dispatch({type: 'loaded', payload: data.signup})
-    }
-  })
-
-  const navigate = useNavigate()
-
-  useEffect(() => {
-    if (isLoading === false && user) {
-      navigate('/', {replace: true})
-    }
-  }, [user, isLoading, navigate])
 
   function handleEvent(e) {
     const {value, id} = e.target
@@ -65,16 +46,17 @@ function Registration() {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (!isSubmit) {
-      dispatch({type: 'loading'})
-      await signUpMutation({variables: {...formValues}})
+    if (formValues.email && formValues.password) {
+      setIsSubmit(true)
+      await signUp(formValues)
     }
   }
 
   return (
     <Wrapper>
-      <Header fontSize="4em">Task-tracker</Header>
-      <Header fontSize="3em">Registration Page</Header>
+      <Header fontSize="3em" color="papayawhip">
+        Registration
+      </Header>
       <form onSubmit={handleSubmit}>
         <Block>
           <StyledInput
@@ -133,7 +115,12 @@ function Registration() {
         <Block>
           <FileUploader accept="image/*"></FileUploader>
         </Block>
-        <Button margin="0.3em" type="submit" disabled={isSubmit}>
+        <Button
+          margin="0.3em"
+          type="submit"
+          disabled={isSubmit}
+          onClick={handleSubmit}
+        >
           Sign Up
         </Button>
       </form>
@@ -141,4 +128,4 @@ function Registration() {
   )
 }
 
-export default Registration
+export default AuthorizeComponent(Registration, true, '/')

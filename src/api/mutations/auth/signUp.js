@@ -1,7 +1,6 @@
 import {gql} from '@apollo/client'
-import {USER_PARTIAL_FRAGMENT} from '../../fragments/user'
 
-export const SIGN_UP_MUTATION = gql`
+export const SIGN_UP = gql`
   mutation signUp(
     $email: String!
     $password: String!
@@ -18,9 +17,6 @@ export const SIGN_UP_MUTATION = gql`
     ) {
       accessToken
       refreshToken
-      me {
-        ${USER_PARTIAL_FRAGMENT}
-      }
     }
   }
 `

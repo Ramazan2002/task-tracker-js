@@ -9,33 +9,26 @@ import {Error} from '../components/Error'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faEye} from '@fortawesome/free-solid-svg-icons'
 import {LoginFormValidator} from '../validators/FormValidator'
-import {useApolloClient} from '@apollo/client'
-import useAuthUser from '../globals/AuthUser'
-import {useNavigate} from 'react-router-dom'
-import signIn from '../api/mutations/authentication/signIn'
+import AuthorizeComponent from '../components/AuthorizeComponent'
+import useSignIn from '../hooks/mutations/auth/useSignIn'
 
 function Login() {
   const eye = <FontAwesomeIcon icon={faEye} />
   const [formValues, setFormValues] = useState({
-    login: '',
+    email: '',
     password: ''
   })
+  const {signIn} = useSignIn()
 
   const [passwordShown, setPasswordShown] = useState(false)
   const [isSubmit, setIsSubmit] = useState(true)
   const [formErrors, setFormErrors] = useState({})
-  const {dispatch, state: AuthUser} = useAuthUser()
-  const client = useApolloClient()
 
-  const handleSignIn = async (event) => {
-    console.log(AuthUser.isLoading)
-    console.log(isSubmit)
-    event.preventDefault()
+  async function handleLogin(e) {
+    e.preventDefault()
     if (!isSubmit) {
-      dispatch({type: 'loading'})
-      const result = await signIn(client, formValues)
-      if (result === false) setIsSubmit(true)
-      dispatch({type: 'loaded', payload: result})
+      setIsSubmit(true)
+      await signIn(formValues)
     }
   }
 
@@ -51,16 +44,16 @@ function Login() {
       setFormValues({...formValues, [id]: value})
     }
   }
-  const navigate = useNavigate()
-  useEffect(() => {
-    if (AuthUser.user) {
-      navigate('/', {replace: true})
-    }
-  }, [AuthUser.user])
+  // const navigate = useNavigate()
+  // useEffect(() => {
+  //   if (AuthUser.user) {
+  //     navigate('/', {replace: true})
+  //   }
+  // }, [AuthUser.user])
 
   useEffect(() => {
     setFormErrors(LoginFormValidator(formValues))
-    if (formErrors.login === undefined && formErrors.password === undefined) {
+    if (formErrors.email === undefined && formErrors.password === undefined) {
       setIsSubmit(false)
     } else {
       setIsSubmit(true)
@@ -69,12 +62,13 @@ function Login() {
 
   return (
     <Wrapper>
-      <Header fontSize="4em">Task-tracker</Header>
-      <Header fontSize="3em">Login Page</Header>
-      <form onSubmit={handleSignIn}>
+      <Header fontSize="4em" color="papayawhip">
+        Login
+      </Header>
+      <form onSubmit={handleLogin}>
         <Block>
           <StyledInput
-            id="login"
+            id="email"
             Margin="10px"
             placeholder="Your login"
             type="text"
@@ -83,7 +77,7 @@ function Login() {
             onBlur={(e) => handleEvent(e)}
             required
           />
-          <Error>{formErrors.login}</Error>
+          <Error>{formErrors.email}</Error>
         </Block>
         <Block>
           <StyledInput
@@ -98,7 +92,12 @@ function Login() {
           <Icon onClick={togglePasswordVisibility}>{eye}</Icon>
           <Error>{formErrors.password}</Error>
         </Block>
-        <Button margin="0.3em" disabled={isSubmit} type="submit">
+        <Button
+          margin="0.3em"
+          disabled={isSubmit}
+          onClick={handleLogin}
+          type="submit"
+        >
           Sign In
         </Button>
       </form>
@@ -106,4 +105,4 @@ function Login() {
   )
 }
 
-export default Login
+export default AuthorizeComponent(Login, true, '/')
